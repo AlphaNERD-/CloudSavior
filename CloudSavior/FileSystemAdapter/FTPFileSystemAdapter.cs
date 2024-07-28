@@ -11,7 +11,7 @@ namespace CloudSavior.FileSystemAdapter
     {
         private FtpClient client;
 
-        public FtpFileSystemAdapter(string host, string username, string password)
+        public FtpFileSystemAdapter(string host, string username, string password, string rootpath)
         {
             client = new FtpClient(host, username, password);
         }
@@ -70,6 +70,11 @@ namespace CloudSavior.FileSystemAdapter
             {
                 client.UploadStream(ms, path);
             }
+        }
+
+        protected override void DeleteFile(string path)
+        {
+            client.DeleteFile(path);
         }
     }
 }

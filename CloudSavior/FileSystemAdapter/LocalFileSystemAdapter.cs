@@ -54,5 +54,10 @@ namespace CloudSavior.FileSystemAdapter
         {
             File.WriteAllBytes(path, data);
         }
+
+        protected override void DeleteFile(string path)
+        {
+            File.Delete(path);
+        }
     }
 }

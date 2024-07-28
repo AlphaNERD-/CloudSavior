@@ -2,9 +2,9 @@
 using System;
 using System.Net;
 
-namespace CloudSavior
+namespace CloudSavior.Jobs
 {
-    public class GameFinder
+    public class GameFinderJob
     {
         public static void FindGames()
         {

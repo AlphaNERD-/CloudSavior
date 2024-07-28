@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using DynamicData.Tests;
 
 namespace CloudSavior.FileSystemAdapter
@@ -40,6 +43,33 @@ namespace CloudSavior.FileSystemAdapter
         protected virtual void SaveFile(string path, byte[] data)
         {
             throw new NotImplementedException();
+        }
+
+        protected virtual void DeleteFile(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool CheckTimeSynchronicity(IFileSystemAdapter adapter)
+        {
+            DeleteFile("test.txt");
+            adapter.DeleteFile("test.txt");
+
+            Task taskLocal = Task.Run(() => SaveFile("test.txt", MakeTestFile()));
+            Task taskRemote = Task.Run(() => adapter.SaveFile("test.txt", MakeTestFile()));
+
+            Task.WaitAll(taskLocal, taskRemote);
+
+            DateTimeOffset localTime = GetLastWriteTime("test.txt");
+            DateTimeOffset remoteTime = adapter.GetLastWriteTime("test.txt");
+            return localTime == remoteTime;
+        }
+
+        private byte[] MakeTestFile()
+        {
+            string text = "This is a test file.";
+            byte[] fileData = Encoding.UTF8.GetBytes(text);
+            return fileData;
         }
     }
 
