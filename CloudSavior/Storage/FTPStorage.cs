@@ -3,15 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CloudSavior.FileSystemAdapter;
+using CloudSavior.Objects;
 
-namespace CloudSavior.FileSystemAdapter
+namespace CloudSavior.Storages
 {
-    public class FtpFileSystemAdapter : IFileSystemAdapter
+    public class FTPStorage : Storage
     {
         private FtpClient client;
 
-        public FtpFileSystemAdapter(string host, string username, string password, string rootpath)
+        public FTPStorage(string host, string username, string password, string rootpath)
         {
             client = new FtpClient(host, username, password);
         }

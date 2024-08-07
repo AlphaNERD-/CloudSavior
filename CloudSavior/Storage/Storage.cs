@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using DynamicData.Tests;
+using CloudSavior.Objects;
 
-namespace CloudSavior.FileSystemAdapter
+namespace CloudSavior.Storages
 {
-    public class IFileSystemAdapter
+    public class Storage
     {
+        public string StorageConfigPath { get; set; }
+        public List<Game> Games { get; set; }
+        public List<SearchDirectory> SearchDirectories { get; set; }
+
         public virtual void Connect()
         {
             throw new NotImplementedException();
@@ -29,10 +32,10 @@ namespace CloudSavior.FileSystemAdapter
             throw new NotImplementedException();
         }
 
-        public void CopyFile(string sourcePath, IFileSystemAdapter adapter, string destinationPath)
+        public void CopyFile(string sourcePath, Storage storage, string destinationPath)
         {
             byte[] file = LoadFile(sourcePath);
-            adapter.SaveFile(destinationPath, file);
+            storage.SaveFile(destinationPath, file);
         }
 
         protected virtual byte[] LoadFile(string path)
@@ -50,18 +53,18 @@ namespace CloudSavior.FileSystemAdapter
             throw new NotImplementedException();
         }
 
-        public virtual bool CheckTimeSynchronicity(IFileSystemAdapter adapter)
+        public virtual bool CheckTimeSynchronicity(Storage storage)
         {
             DeleteFile("test.txt");
-            adapter.DeleteFile("test.txt");
+            storage.DeleteFile("test.txt");
 
             Task taskLocal = Task.Run(() => SaveFile("test.txt", MakeTestFile()));
-            Task taskRemote = Task.Run(() => adapter.SaveFile("test.txt", MakeTestFile()));
+            Task taskRemote = Task.Run(() => storage.SaveFile("test.txt", MakeTestFile()));
 
             Task.WaitAll(taskLocal, taskRemote);
 
             DateTimeOffset localTime = GetLastWriteTime("test.txt");
-            DateTimeOffset remoteTime = adapter.GetLastWriteTime("test.txt");
+            DateTimeOffset remoteTime = storage.GetLastWriteTime("test.txt");
             return localTime == remoteTime;
         }
 

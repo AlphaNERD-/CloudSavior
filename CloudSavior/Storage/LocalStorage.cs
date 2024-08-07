@@ -1,11 +1,10 @@
 using System;
 using System.IO;
 using System.Linq;
-using CloudSavior.FileSystemAdapter;
 
-namespace CloudSavior.FileSystemAdapter
+namespace CloudSavior.Storages
 {
-    public class LocalFileSystemAdapter : IFileSystemAdapter
+    public class LocalStorage : Storage
     {
         public override void Connect()
         {
