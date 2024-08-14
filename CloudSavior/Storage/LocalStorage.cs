@@ -58,5 +58,10 @@ namespace CloudSavior.Storages
         {
             File.Delete(path);
         }
+
+        public override void CreateDirectory(string path)
+        {
+            Directory.CreateDirectory(path);
+        }
     }
 }

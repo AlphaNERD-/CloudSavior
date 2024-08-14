@@ -76,5 +76,10 @@ namespace CloudSavior.Storages
         {
             client.DeleteFile(path);
         }
+
+        public override void CreateDirectory(string path)
+        {
+            client.CreateDirectory(path);
+        }
     }
 }

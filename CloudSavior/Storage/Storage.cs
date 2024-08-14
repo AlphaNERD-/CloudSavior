@@ -74,6 +74,11 @@ namespace CloudSavior.Storages
             byte[] fileData = Encoding.UTF8.GetBytes(text);
             return fileData;
         }
+
+        public virtual void CreateDirectory(string path)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class FileSystemDirectory
