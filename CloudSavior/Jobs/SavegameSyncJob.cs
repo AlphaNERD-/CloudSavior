@@ -41,6 +41,8 @@ namespace CloudSavior.Jobs
             Dictionary<string, List<Storage>> fileStorages = new Dictionary<string, List<Storage>>();
             Dictionary<FileSystemDirectory, List<Storage>> directoryStorages = new Dictionary<FileSystemDirectory, List<Storage>>();
 
+            List<Storage> allStorages = fileStorages.Keys.SelectMany(x => fileStorages[x]).Distinct().ToList();
+
             foreach (var storage in directory.Keys)
             {
                 FileSystemDirectory fsDir = directory[storage];
@@ -68,40 +70,49 @@ namespace CloudSavior.Jobs
             foreach (var file in fileStorages.Keys)
             {
                 List<Storage> fileStorage = fileStorages[file];
-                if (fileStorage.Count > 1)
+
+                Dictionary<Storage, DateTimeOffset> lastWriteTimes = new Dictionary<Storage, DateTimeOffset>();
+
+                foreach (var storage in fileStorage)
                 {
-                    Dictionary<Storage, DateTimeOffset> lastWriteTimes = new Dictionary<Storage, DateTimeOffset>();
-
-                    foreach (var storage in fileStorage)
-                    {
-                        lastWriteTimes.Add(storage, storage.GetLastWriteTime(file));
-                    }
-
-                    Storage sourceStorage = lastWriteTimes.Where(x => x.Value == lastWriteTimes.Values.Max()).First().Key;
-
-                    lastWriteTimes.Remove(sourceStorage);
-
-                    foreach (var storage in lastWriteTimes.Keys)
-                    {
-                        storage.CopyFile(file, sourceStorage, file);
-                    }
+                    lastWriteTimes.Add(storage, storage.GetLastWriteTime(file));
                 }
-                else
+
+                Storage sourceStorage = lastWriteTimes.Where(x => x.Value == lastWriteTimes.Values.Max()).First().Key;
+
+                lastWriteTimes.Remove(sourceStorage);
+
+                foreach (var storage in lastWriteTimes.Keys)
                 {
-                    Storage storage = fileStorage.First();
-                    storage.CopyFile(file, storage, file);
+                    sourceStorage.CopyFile(file, storage, file);
+                }
+
+                List<Storage> missingStorages = allStorages.Where(x => !fileStorages[file].Contains(x)).ToList();
+
+                foreach (var storage in missingStorages)
+                {
+                    sourceStorage.CopyFile(file, storage, file);
                 }
             }
 
             foreach (var dir in directoryStorages.Keys)
             {
-                List<Storage> dirStorage = directoryStorages[dir];
+                List<Storage> missingStorages = allStorages.Where(x => !directoryStorages[dir].Contains(x)).ToList();
 
-                if (dirStorage.Count < 2)
+                foreach (var storage in missingStorages)
                 {
-                    Storage storage = dirStorage.First();
                     storage.CreateDirectory(dir.Path);
+                    directoryStorages[dir].Add(storage);
                 }
+
+                Dictionary<Storage, FileSystemDirectory> subDirectories = new Dictionary<Storage, FileSystemDirectory>();
+
+                foreach (var storage in directoryStorages[dir])
+                {
+                    subDirectories.Add(storage, storage.GetDirectory(dir.Path, false));
+                }
+
+                SyncDirectory(subDirectories);
             }
         }
     }
