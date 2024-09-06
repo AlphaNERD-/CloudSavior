@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CloudSavior.Storages;
 using CloudSavior.Objects;
 using System.Linq;
+using System.IO;
 
 namespace CloudSavior.Jobs
 {
@@ -33,7 +34,56 @@ namespace CloudSavior.Jobs
             {
                 List<Storage> gameStorage = gameStorages[game];
 
+                Dictionary<Storage, FileSystemDirectory> directories = new Dictionary<Storage, FileSystemDirectory>();
+
+                foreach (var dir in GetSyncDirectories(gameStorage, game.SaveFiles, true))
+                {
+                    directories.Add(dir.Key, dir.Value);
+                }
+
+                foreach (var dir in GetSyncDirectories(gameStorage, game.ConfigFiles, true))
+                {
+                    directories.Add(dir.Key, dir.Value);
+                }
+
+                SyncDirectory(directories);
             }
+        }
+
+        public static Dictionary<Storage, FileSystemDirectory> GetSyncDirectories(List<Storage> gameStorage, List<string> directoryList, bool create)
+        {
+            Dictionary<Storage, FileSystemDirectory> directories = new Dictionary<Storage, FileSystemDirectory>();
+
+            foreach (string path in directoryList)
+            {
+                List<string> pathElements = path.Split('/').ToList();
+
+                string relativePath = "";
+                bool pathDetermined = false;
+
+                while (!pathDetermined)
+                {
+                    relativePath = pathElements.Last();
+
+                    pathElements.RemoveAt(pathElements.Count - 1);
+
+                    if (directoryList.Find(x => x.Contains(relativePath)).Count() > 1)
+                    {
+                        relativePath = path + "/" + relativePath;
+                    }
+                    else
+                    {
+                        pathDetermined = true;
+                    }
+                }
+
+                foreach (var storage in gameStorage)
+                {
+                    directories.Add(storage, storage.GetDirectory(storage.Games.Find(x => x == game).SaveFiles.Find(x => x.Contains(relativePath)), false));
+                }
+            }
+
+            return directories;
         }
 
         public static void SyncDirectory(Dictionary<Storage, FileSystemDirectory> directory)
