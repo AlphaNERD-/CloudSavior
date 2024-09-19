@@ -1,6 +1,10 @@
 
 using System;
 using System.Net;
+using System.Collections.Generic;
+using YamlDotNet.Serialization;
+using CloudSavior.Storages;
+using CloudSavior.Objects;
 
 namespace CloudSavior.Jobs
 {
@@ -16,6 +20,24 @@ namespace CloudSavior.Jobs
                 string savePath = "C:/Users/AlphaNERD/Desktop/CloudSavior/manifest.yml";
 
                 client.DownloadFile(downloadUrl, savePath);
+            }
+
+
+
+            var deserializer = new DeserializerBuilder().Build();
+            List<LudusaviSchema> manifest = deserializer.Deserialize<List<LudusaviSchema>>(System.IO.File.ReadAllText("C:/Users/AlphaNERD/Desktop/CloudSavior/manifest.yml"));
+
+            List<Storage> storages = new List<Storage>();
+
+            storages.Add(StorageManager.LocalStorage);
+
+            storages.AddRange(StorageManager.RemoteStorage);
+
+            
+
+            foreach (Storage storage in storages)
+            {
+                
             }
         }
     }
