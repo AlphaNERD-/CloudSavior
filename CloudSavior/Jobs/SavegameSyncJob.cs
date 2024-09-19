@@ -9,6 +9,12 @@ namespace CloudSavior.Jobs
 {
     public class SavegameSyncJob
     {
+        private enum SyncDirectoryType
+        {
+            Savegame,
+            Config
+        }
+
         public static void SyncSavegames()
         {
             List<Storage> storages = new List<Storage>();
@@ -36,12 +42,12 @@ namespace CloudSavior.Jobs
 
                 Dictionary<Storage, FileSystemDirectory> directories = new Dictionary<Storage, FileSystemDirectory>();
 
-                foreach (var dir in GetSyncDirectories(gameStorage, game.SaveFiles, true))
+                foreach (var dir in GetSyncDirectories(gameStorage, game, SyncDirectoryType.Savegame, true))
                 {
                     directories.Add(dir.Key, dir.Value);
                 }
 
-                foreach (var dir in GetSyncDirectories(gameStorage, game.ConfigFiles, true))
+                foreach (var dir in GetSyncDirectories(gameStorage, game, SyncDirectoryType.Config, true))
                 {
                     directories.Add(dir.Key, dir.Value);
                 }
@@ -50,9 +56,21 @@ namespace CloudSavior.Jobs
             }
         }
 
-        public static Dictionary<Storage, FileSystemDirectory> GetSyncDirectories(List<Storage> gameStorage, List<string> directoryList, bool create)
+        private static Dictionary<Storage, FileSystemDirectory> GetSyncDirectories(List<Storage> gameStorage, Game game, SyncDirectoryType type, bool create)
         {
             Dictionary<Storage, FileSystemDirectory> directories = new Dictionary<Storage, FileSystemDirectory>();
+
+            List<string> directoryList = new List<string>();
+
+            switch (type)
+            {
+                case SyncDirectoryType.Savegame:
+                    directoryList = game.SaveFiles;
+                    break;
+                case SyncDirectoryType.Config:
+                    directoryList = game.ConfigFiles;
+                    break;
+            }
 
             foreach (string path in directoryList)
             {
@@ -86,7 +104,7 @@ namespace CloudSavior.Jobs
             return directories;
         }
 
-        public static void SyncDirectory(Dictionary<Storage, FileSystemDirectory> directory)
+        private static void SyncDirectory(Dictionary<Storage, FileSystemDirectory> directory)
         {
             Dictionary<string, List<Storage>> fileStorages = new Dictionary<string, List<Storage>>();
             Dictionary<FileSystemDirectory, List<Storage>> directoryStorages = new Dictionary<FileSystemDirectory, List<Storage>>();
